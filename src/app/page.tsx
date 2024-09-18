@@ -1,101 +1,231 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState, useRef } from "react";
+
+import { useOnClickOutside } from "usehooks-ts";
+import { Spinner } from "./spinner";
+
+export default function FeedbackComponentCSS() {
+  const [open, setOpen] = useState(false);
+  const [formState, setFormState] = useState("idle");
+  const [feedback, setFeedback] = useState("");
+  const ref = useRef(null);
+  useOnClickOutside(ref, () => setOpen(false));
+
+  function submit() {
+    setFormState("loading");
+    setTimeout(() => {
+      setFormState("success");
+    }, 1500);
+
+    setTimeout(() => {
+      setOpen(false);
+    }, 3300);
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "Enter" &&
+        open &&
+        formState === "idle"
+      ) {
+        submit();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, formState]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="feedback-wrapper">
+      <motion.button
+        layoutId="wrapper"
+        onClick={() => {
+          setOpen(true);
+          setFormState("idle");
+          setFeedback("");
+        }}
+        key="button"
+        className="feedback-button"
+        style={{ borderRadius: 8 }}
+      >
+        <motion.span layoutId="title">Feedback</motion.span>
+      </motion.button>
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            layoutId="wrapper"
+            className="feedback-popover"
+            ref={ref}
+            style={{ borderRadius: 12 }}
+          >
+            <motion.span
+              aria-hidden
+              className="placeholder"
+              layoutId="title"
+              data-success={formState === "success" ? "true" : "false"}
+              data-feedback={feedback ? "true" : "false"}
+            ></motion.span>
+            <AnimatePresence mode="popLayout">
+              {formState === "success" ? (
+                <motion.div
+                  key="success"
+                  initial={{ y: -32, opacity: 0, filter: "blur(4px)" }}
+                  animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  className="success-wrapper"
+                >
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M27.6 16C27.6 17.5234 27.3 19.0318 26.717 20.4392C26.1341 21.8465 25.2796 23.1253 24.2025 24.2025C23.1253 25.2796 21.8465 26.1341 20.4392 26.717C19.0318 27.3 17.5234 27.6 16 27.6C14.4767 27.6 12.9683 27.3 11.5609 26.717C10.1535 26.1341 8.87475 25.2796 7.79759 24.2025C6.72043 23.1253 5.86598 21.8465 5.28302 20.4392C4.70007 19.0318 4.40002 17.5234 4.40002 16C4.40002 12.9235 5.62216 9.97301 7.79759 7.79759C9.97301 5.62216 12.9235 4.40002 16 4.40002C19.0765 4.40002 22.027 5.62216 24.2025 7.79759C26.3779 9.97301 27.6 12.9235 27.6 16Z"
+                      fill="#2090FF"
+                      fillOpacity="0.16"
+                    />
+                    <path
+                      d="M12.1334 16.9667L15.0334 19.8667L19.8667 13.1M27.6 16C27.6 17.5234 27.3 19.0318 26.717 20.4392C26.1341 21.8465 25.2796 23.1253 24.2025 24.2025C23.1253 25.2796 21.8465 26.1341 20.4392 26.717C19.0318 27.3 17.5234 27.6 16 27.6C14.4767 27.6 12.9683 27.3 11.5609 26.717C10.1535 26.1341 8.87475 25.2796 7.79759 24.2025C6.72043 23.1253 5.86598 21.8465 5.28302 20.4392C4.70007 19.0318 4.40002 17.5234 4.40002 16C4.40002 12.9235 5.62216 9.97301 7.79759 7.79759C9.97301 5.62216 12.9235 4.40002 16 4.40002C19.0765 4.40002 22.027 5.62216 24.2025 7.79759C26.3779 9.97301 27.6 12.9235 27.6 16Z"
+                      stroke="#2090FF"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <h3>Feedback received!</h3>
+                  <p>Thanks for helping me improve Sonner.</p>
+                </motion.div>
+              ) : (
+                <motion.form
+                  exit={{ y: 8, opacity: 0, filter: "blur(4px)" }}
+                  transition={{ type: "spring", duration: 0.4, bounce: 0 }}
+                  key="form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+                    submit();
+                  }}
+                  className="feedback-form"
+                >
+                  <textarea
+                    autoFocus
+                    onChange={(e) => setFeedback(e.target.value)}
+                    className="textarea"
+                  />
+                  <div className="feedback-footer">
+                    <svg
+                      className="dotted-line"
+                      width="352"
+                      height="2"
+                      viewBox="0 0 352 2"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M0 1H352"
+                        stroke="#E6E7E8"
+                        strokeDasharray="4 4"
+                      />
+                    </svg>
+                    <div className="half-circle-left">
+                      <svg
+                        width="6"
+                        height="12"
+                        viewBox="0 0 6 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clipPath="url(#clip0_2029_22)">
+                          <path
+                            d="M0 2C0.656613 2 1.30679 2.10346 1.91341 2.30448C2.52005 2.5055 3.07124 2.80014 3.53554 3.17157C3.99982 3.54301 4.36812 3.98396 4.6194 4.46927C4.87067 4.95457 5 5.47471 5 6C5 6.52529 4.87067 7.04543 4.6194 7.53073C4.36812 8.01604 3.99982 8.45699 3.53554 8.82843C3.07124 9.19986 2.52005 9.4945 1.91341 9.69552C1.30679 9.89654 0.656613 10 0 10V6V2Z"
+                            fill="#F5F6F7"
+                          />
+                          <path
+                            d="M1 12V10C2.06087 10 3.07828 9.57857 3.82843 8.82843C4.57857 8.07828 5 7.06087 5 6C5 4.93913 4.57857 3.92172 3.82843 3.17157C3.07828 2.42143 2.06087 2 1 2V0"
+                            stroke="#E6E7E8"
+                            strokeWidth="1"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_2029_22">
+                            <rect width="6" height="12" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                    </div>
+
+                    <div className="half-circle-right">
+                      <svg
+                        width="6"
+                        height="12"
+                        viewBox="0 0 6 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clipPath="url(#clip0_2029_22)">
+                          <path
+                            d="M0 2C0.656613 2 1.30679 2.10346 1.91341 2.30448C2.52005 2.5055 3.07124 2.80014 3.53554 3.17157C3.99982 3.54301 4.36812 3.98396 4.6194 4.46927C4.87067 4.95457 5 5.47471 5 6C5 6.52529 4.87067 7.04543 4.6194 7.53073C4.36812 8.01604 3.99982 8.45699 3.53554 8.82843C3.07124 9.19986 2.52005 9.4945 1.91341 9.69552C1.30679 9.89654 0.656613 10 0 10V6V2Z"
+                            fill="#F5F6F7"
+                          />
+                          <path
+                            d="M1 12V10C2.06087 10 3.07828 9.57857 3.82843 8.82843C4.57857 8.07828 5 7.06087 5 6C5 4.93913 4.57857 3.92172 3.82843 3.17157C3.07828 2.42143 2.06087 2 1 2V0"
+                            stroke="#E6E7E8"
+                            strokeWidth="1"
+                            strokeLinejoin="round"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_2029_22">
+                            <rect width="6" height="12" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                    </div>
+
+                    <button type="submit" className="submit-button">
+                      {/* We already built this one in the animate presence part */}
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.span
+                          transition={{
+                            type: "spring",
+                            duration: 0.3,
+                            bounce: 0,
+                          }}
+                          initial={{ opacity: 0, y: -25 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 25 }}
+                          key={formState}
+                        >
+                          {formState === "loading" ? (
+                            <Spinner
+                              size={14}
+                              color="rgba(255, 255, 255, 0.65)"
+                            />
+                          ) : (
+                            <span>Send feedback</span>
+                          )}
+                        </motion.span>
+                      </AnimatePresence>
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
